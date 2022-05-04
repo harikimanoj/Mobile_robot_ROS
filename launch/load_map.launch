@@ -1,0 +1,48 @@
+<launch>
+	<node pkg="urg_node" type="urg_node" name="run_hokuyo_101x">
+		<param name="ip_address" value="128.46.112.200"/>
+	</node>
+	
+	<arg name="map_file" default="$(find wall_follower)/resources/map/POTR_BO37hall.yaml"/>
+	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
+	
+	<node pkg="tf" type="static_transform_publisher" name="base_to_laser" args="0.0 0.0 0.0 0.0 0.0 0.0 /base /laser 100" />
+
+	
+	<arg name="map_size" default="2048"/>
+	<arg name="map_resolution" default="0.05"/>
+
+	<node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
+		<remap from="map" to="/mapcurrent" />
+		<param name="map_frame" value="mapcurrent"/> 
+		<param name="base_frame" value="base"/> 
+		<param name="odom_frame" value="hector_odom"/>
+
+		<param name="use_tf_scan_transformation" value="true"/>
+		<param name="use_tf_pose_start_estimate" value="false"/>
+		<param name="pub_map_odom_transform" value="false"/> 
+		<param name="pub_odometry" value="true" />
+
+		<param name="map_resolution" value="$(arg map_resolution)"/>
+		<param name="map_size" value="$(arg map_size)"/>
+		<param name="scan_topic" value="scan"/>
+		<param name="tf_map_scanmatch_transform_frame_name" value="hector_odom" />
+	</node>
+
+	<node name="odomtransformer" pkg="wall_follower" type="odometry.py" output="screen">
+		<param name="odom_input" value="/scanmatch_odom" />
+		<param name="tf_output" value="/base" />
+	</node>
+
+	<node pkg="amcl" type="amcl" name="amcl">
+		<param name="base_frame_id" value="/base" />
+		<param name="global_frame_id" value="/map" />
+		<param name="odom_frame_id" value="/scanmatch_odom" />
+	    <param name="odom_model_type" value="omni" />
+	</node>
+		
+	<node type="rviz" name="rviz" pkg="rviz"/>
+	<node pkg="wall_follower" type="get_points.py" output="screen" name="waypoint"/>
+	<!--node pkg="wall_follower" type="rally_car.py" output="screen" name ="rally_car"/-->
+</launch>
+
