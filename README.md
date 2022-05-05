@@ -1,6 +1,8 @@
 # Mobile_robot_ROS
 ------ROS code to control Mobile Robots------
+
 -----This code provide trajectory genration of a mobile robot by AMCL------
+
 -----PD Contoller Included-------
 1. Create a workspace for ROS(ros_ws/src)
 2. Create packages for ROS
